@@ -128,6 +128,69 @@ func (v Variable) Reduce(environment map[string]Expression) Expression {
 	return environment[v.Name]
 }
 
+type Statement interface {
+	String() string
+	Reduce(map[string]Expression) (Statement, map[string]Expression)
+	Reducible() bool
+	Equal(Statement) bool
+}
+
+type DoNothing struct{}
+
+func (dn DoNothing) String() string {
+	return "do-nothing"
+}
+
+func (dn DoNothing) Reducible() bool {
+	return false
+}
+
+func (dn DoNothing) Reduce(environment map[string]Expression) (Statement, map[string]Expression) {
+	return dn, environment
+}
+
+func (dn DoNothing) Equal(other Statement) bool {
+	_, ok := other.(DoNothing)
+	return ok
+}
+
+type Assign struct {
+	Name       string
+	Expression Expression
+}
+
+func (a Assign) String() string {
+	return fmt.Sprintf("%s = %s", a.Name, a.Expression)
+}
+
+func (a Assign) Reducible() bool {
+	return true
+}
+
+func (a Assign) Equal(other Statement) bool {
+	return true
+}
+
+func (a Assign) Reduce(environment map[string]Expression) (Statement, map[string]Expression) {
+	if a.Expression.Reducible() {
+		return Assign{a.Name, a.Expression.Reduce(environment)}, environment
+	} else {
+		newEnv := copyMap(environment)
+		newEnv[a.Name] = a.Expression
+		return DoNothing{}, newEnv
+	}
+}
+
+func copyMap(src map[string]Expression) map[string]Expression {
+	cpy := make(map[string]Expression)
+
+	for k, v := range src {
+		cpy[k] = v
+	}
+
+	return cpy
+}
+
 type Machine struct {
 	Expression  Expression
 	Environment map[string]Expression
@@ -182,4 +245,34 @@ func main() {
 		environment,
 	}
 	machine.Run()
+
+	var statement Statement
+
+	statement = Assign{"x", Add{Variable{"x"}, Number{1}}}
+	environment = map[string]Expression{"x": Number{2}}
+
+	fmt.Println(statement)
+	fmt.Println(environment)
+	fmt.Println(statement.Reducible())
+
+	statement, environment = statement.Reduce(environment)
+
+	fmt.Println("")
+	fmt.Println(statement)
+	fmt.Println(environment)
+	fmt.Println(statement.Reducible())
+
+	statement, environment = statement.Reduce(environment)
+
+	fmt.Println("")
+	fmt.Println(statement)
+	fmt.Println(environment)
+	fmt.Println(statement.Reducible())
+
+	statement, environment = statement.Reduce(environment)
+
+	fmt.Println("")
+	fmt.Println(statement)
+	fmt.Println(environment)
+	fmt.Println(statement.Reducible())
 }
