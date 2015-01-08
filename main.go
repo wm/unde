@@ -192,87 +192,26 @@ func copyMap(src map[string]Expression) map[string]Expression {
 }
 
 type Machine struct {
-	Expression  Expression
+	Statement   Statement
 	Environment map[string]Expression
 }
 
 func (m *Machine) Step() {
-	m.Expression = m.Expression.Reduce(m.Environment)
+	m.Statement, m.Environment = m.Statement.Reduce(m.Environment)
 }
 
 func (m *Machine) Run() {
-	for m.Expression.Reducible() {
-		fmt.Println(m.Expression)
+	for m.Statement.Reducible() {
+		fmt.Println(m.Statement, m.Environment)
 		m.Step()
 	}
-	fmt.Println(m.Expression)
+	fmt.Println(m.Statement, m.Environment)
 }
 
 func main() {
-	environment := map[string]Expression{}
-
 	machine := Machine{
-		Add{
-			Multiply{Number{1}, Number{2}},
-			Multiply{Number{3}, Number{4}},
-		},
-		environment,
+		Assign{"x", Add{Variable{"x"}, Number{1}}},
+		map[string]Expression{"x": Number{2}},
 	}
 	machine.Run()
-
-	machine = Machine{
-		LessThan{
-			Number{5},
-			Add{
-				Number{2},
-				Number{2},
-			},
-		},
-		environment,
-	}
-	machine.Run()
-
-	environment = map[string]Expression{
-		"x": Number{3},
-		"y": Number{4},
-	}
-
-	machine = Machine{
-		Add{
-			Variable{"x"},
-			Variable{"y"},
-		},
-		environment,
-	}
-	machine.Run()
-
-	var statement Statement
-
-	statement = Assign{"x", Add{Variable{"x"}, Number{1}}}
-	environment = map[string]Expression{"x": Number{2}}
-
-	fmt.Println(statement)
-	fmt.Println(environment)
-	fmt.Println(statement.Reducible())
-
-	statement, environment = statement.Reduce(environment)
-
-	fmt.Println("")
-	fmt.Println(statement)
-	fmt.Println(environment)
-	fmt.Println(statement.Reducible())
-
-	statement, environment = statement.Reduce(environment)
-
-	fmt.Println("")
-	fmt.Println(statement)
-	fmt.Println(environment)
-	fmt.Println(statement.Reducible())
-
-	statement, environment = statement.Reduce(environment)
-
-	fmt.Println("")
-	fmt.Println(statement)
-	fmt.Println(environment)
-	fmt.Println(statement.Reducible())
 }
