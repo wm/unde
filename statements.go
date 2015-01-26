@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+// A Statement is evaluated to make some change to the state of an abstract maching.
 type Statement interface {
 	String() string
 	Reduce(map[string]Expression) (Statement, map[string]Expression)
@@ -9,6 +10,8 @@ type Statement interface {
 	Equal(Statement) bool
 }
 
+// Simplest Statement is one that does nothing. It can be used to identify that
+// there is no more work to do.
 type DoNothing struct{}
 
 func (dn DoNothing) String() string {
@@ -28,6 +31,8 @@ func (dn DoNothing) Equal(other Statement) bool {
 	return ok
 }
 
+// Simplest Statement that actually does something. It can represent x = x + 1
+// as Assign{Variable{"x"}, Add{"x", Number{1}}
 type Assign struct {
 	Name       string
 	Expression Expression
@@ -66,6 +71,8 @@ func copyEnvironment(src map[string]Expression) map[string]Expression {
 	return cpy
 }
 
+// A conditional statement. Represent `if true then A else B` with
+// If{Expression, Statement, Statement}
 type If struct {
 	Condition   Expression
 	Consequence Statement

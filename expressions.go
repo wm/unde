@@ -5,6 +5,9 @@ import (
 	"strconv"
 )
 
+// An Expression is a combination of values and operators that is reducible to
+// another expression or to a value. Its purpose is to be evaluated to produce
+// another expression.
 type Expression interface {
 	String() string
 	Reducible() bool
@@ -12,6 +15,7 @@ type Expression interface {
 	Equal(Expression) bool
 }
 
+// Boolean is our bool that is a fully reduced Expression.
 type Boolean struct {
 	Value bool
 }
@@ -33,6 +37,7 @@ func (b Boolean) Equal(other Expression) bool {
 	return ok && b.Value == otherBoolean.Value
 }
 
+// LessThan is an Expression with a Left and Right Expression that is reducible.
 type LessThan struct {
 	Left  Expression
 	Right Expression
@@ -61,6 +66,7 @@ func (lt LessThan) Reduce(environment map[string]Expression) Expression {
 	}
 }
 
+// Number is our int that is a fully reduced Expression.
 type Number struct {
 	Value int
 }
@@ -82,6 +88,7 @@ func (n Number) String() string {
 	return strconv.Itoa(n.Value)
 }
 
+// Add is an Expression with a Left and Right Expression that is reducible.
 type Add struct {
 	Left  Expression
 	Right Expression
@@ -110,6 +117,7 @@ func (a Add) String() string {
 	return fmt.Sprintf("%s + %s", a.Left, a.Right)
 }
 
+// Multiply is an Expression with a Left and Right Expression that is reducible.
 type Multiply struct {
 	Left  Expression
 	Right Expression
@@ -138,6 +146,7 @@ func (m Multiply) String() string {
 	return fmt.Sprintf("%s * %s", m.Left, m.Right)
 }
 
+// Variable is an Expression with a Name that represents an Expression in the Environment.
 type Variable struct {
 	Name string
 }
